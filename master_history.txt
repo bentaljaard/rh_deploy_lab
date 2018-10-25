@@ -1,0 +1,863 @@
+    1  export GUID=$(hostname | cut -d. -f2)
+    2  echo $GUID; echo "export GUID=${GUID}" >> /root/.bashrc
+    3  exit
+    4  export GUID=`hostname|awk -F. '{print $2}'`
+    5  echo $GUID
+    6  export volsize="5Gi"
+    7  mkdir /root/pvs
+    8  for volume in pv{1..25} ; do
+    9  cat << EOF > /root/pvs/${volume}
+   10  {
+   11    "apiVersion": "v1",
+   12    "kind": "PersistentVolume",
+   13    "metadata": {
+   14      "name": "${volume}"
+   15    },
+   16    "spec": {
+   17      "capacity": {
+   18          "storage": "${volsize}"
+   19      },
+   20      "accessModes": [ "ReadWriteOnce" ],
+   21      "nfs": {
+   22          "path": "/srv/nfs/user-vols/${volume}",
+   23          "server": "support1.$GUID.internal"
+   24      },
+   25      "persistentVolumeReclaimPolicy": "Recycle"
+   26    }
+   27  }
+   28  EOF
+   29   echo "Created def file for ${volume}"; done;
+   30  export volsize="10Gi"
+   31  for volume in pv{26..50} ; do
+   32  cat << EOF > /root/pvs/${volume}
+   33  {
+   34    "apiVersion": "v1",
+   35    "kind": "PersistentVolume",
+   36    "metadata": {
+   37      "name": "${volume}"
+   38    },
+   39    "spec": {
+   40      "capacity": {
+   41          "storage": "${volsize}"
+   42      },
+   43      "accessModes": [ "ReadWriteMany" ],
+   44      "nfs": {
+   45          "path": "/srv/nfs/user-vols/${volume}",
+   46          "server": "support1.$GUID.internal"
+   47      },
+   48      "persistentVolumeReclaimPolicy": "Retain"
+   49    }
+   50  }
+   51  EOF
+   52   echo "Created def file for ${volume}"; done;
+   53  cat /root/pvs/* | oc create -f -
+   54  oc get pvs
+   55  oc get pv
+   56  c adm diagnostics
+   57  oc adm diagnostics
+   58  oc adm diagnostics
+   59  exit
+   60  oc whoami
+   61  oc login -u andrew -p r3dh4t1!
+   62  oc new-project my-ruby-project --display-name="My Ruby Example Project" --description="A simple project"
+   63  oc project
+   64  oc projects
+   65  oc get all
+   66  oc new-app https://github.com/openshift/ruby-hello-world --name='my-ruby-hello-world' --labels="environment=dev"
+   67  oc status
+   68  oc get all
+   69  oc describe buildconfig my-ruby-hello-world
+   70  oc describe build my-ruby-hello-world-1
+   71  oc describe imagestream my-ruby-hello-world
+   72  oc describe deploymentconfig my-ruby-hello-world
+   73  oc logs my-ruby-hello-world-1-build
+   74  oc expose svc my-ruby-hello-world
+   75  oc get route
+   76  oc describe route my-ruby-hello-world
+   77  oc get pods
+   78  oc scale --replicas=3 deploymentconfig my-ruby-hello-world
+   79  oc get all
+   80  oc describe replicationcontroller my-ruby-hello-world-1
+   81  oc status
+   82  oc get pods -o wide
+   83  oc describe svc my-ruby-hello-world
+   84  oc describe route my-ruby-hello-world
+   85  oc login -u karla -p r3dh4t1!
+   86  oc new-project custom-s2i-script --display-name="Custom S2I Build Script"     --description="This is the project we use to learn how to create a local build"
+   87  git clone https://github.com/bentaljaard/ruby-hello-world.git
+   88  cd ruby-hello-world/
+   89  oc new-app . --docker-image=registry.access.redhat.com/rhsc1/ruby-23-rhel7
+   90  oc new-app . --docker-image=registry.access.redhat.com/rhscl/ruby-23-rhel7
+   91  oc logs -f ruby-hello-world-1-build
+   92  oc get pods
+   93  oc login -u karla -p r3dh4t1!
+   94  oc new-project my-custom --display-name='My custom assemble script project' --description="An explanation"
+   95  oc new-app https://github.com/bentaljaard/ruby-hello-world --image-stream=ruby:2.3 --name='my-custom-builder-test'
+   96  oc logs my-custom-builder-test-1-build -f
+   97  oc status
+   98  oc get all
+   99  exit
+  100  oc login 
+  101  oc login -u karla
+  102  oc project lifecycle
+  103  echo ${GUID}
+  104  oc expose service ruby-hello-world   --name="ruby-hello-world"   --hostname=ruby-hello-world-lifecycle.apps.${GUID}.example.opentlc.com
+  105  oc get buildconfig ruby-hello-world -o yaml
+  106  oc edit bc ruby-hello-world
+  107  oc get buildconfig ruby-hello-world -o yaml
+  108  oc get builds
+  109  oc start-build ruby-hello-world
+  110  oc get builds -w
+  111  oc logs -f bc/ruby-hello-world
+  112  oc new-app --search mysql
+  113  oc new-app --template=mysql-ephemeral --name=database --param MYSQL_USER=mysqluser --parama MYSQL_PASSWORD=redhat --param MYSQL_DATABASE=mydb --param DATABASE_SERVICE_NAME=database
+  114  oc new-app --template=mysql-ephemeral --name=database --param MYSQL_USER=mysqluser --param MYSQL_PASSWORD=redhat --param MYSQL_DATABASE=mydb --param DATABASE_SERVICE_NAME=database
+  115  oc env dc/database --list
+  116  oc rollout latest ruby-hello-world
+  117  oc logs -f dc/ruby-hello-world
+  118  echo $GUID}
+  119  exit
+  120  systemctl restart atomic-openshift-master-api.service atomic-openshift-master-controllers.service atomic-openshift-node.service
+  121  exit
+  122  oc login -u system:admin
+  123  cat << EOF > /etc/origin/master/groupsync.yaml
+  124  kind: LDAPSyncConfig
+  125  apiVersion: v1
+  126  url: "ldap://ipa.shared.example.opentlc.com"
+  127  insecure: false
+  128  ca: "/etc/origin/master/ipa-ca.crt"
+  129  bindDN: "uid=admin,cn=users,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  130  bindPassword: "r3dh4t1!"
+  131  rfc2307:
+  132      groupsQuery:
+  133          baseDN: "cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  134          scope: sub
+  135          derefAliases: never
+  136          filter: (&(!(objectClass=mepManagedEntry))(!(cn=trust admins))(!(cn=groups))(!(cn=admins))(!(cn=ipausers))(!(cn=editors))(!(cn=ocp-users))(!(cn=evmgroup*))(!(cn=ipac*)))
+  137      groupUIDAttribute: dn
+  138      groupNameAttributes: [ cn ]
+  139      groupMembershipAttributes: [ member ]
+  140      usersQuery:
+  141          baseDN: "cn=users,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  142          scope: sub
+  143          derefAliases: never
+  144      userUIDAttribute: dn
+  145      userNameAttributes: [ uid ]
+  146  EOF
+  147  cat << EOF >> /etc/origin/master/groupsync.yaml
+  148  groupUIDNameMapping:
+  149    "cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "portalapp"
+  150    "cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "paymentapp"
+  151    "cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-production"
+  152    "cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-platform"
+  153  EOFcat << EOF >> /etc/origin/master/groupsync.yaml
+  154  groupUIDNameMapping:
+  155    "cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "portalapp"
+  156    "cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "paymentapp"
+  157    "cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-production"
+  158    "cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-platform"
+  159  EOFcat << EOF >> /etc/origin/master/groupsync.yaml
+  160  groupUIDNameMapping:
+  161    "cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "portalapp"
+  162    "cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "paymentapp"
+  163    "cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-production"
+  164    "cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-platform"
+  165  EOFcat << EOF >> /etc/origin/master/groupsync.yaml
+  166  groupUIDNameMapping:
+  167    "cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "portalapp"
+  168    "cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "paymentapp"
+  169    "cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-production"
+  170    "cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-platform"
+  171  EOF
+  172  cat << EOF > /etc/origin/master/groupsync.yaml
+  173  kind: LDAPSyncConfig
+  174  apiVersion: v1
+  175  url: "ldap://ipa.shared.example.opentlc.com"
+  176  insecure: false
+  177  ca: "/etc/origin/master/ipa-ca.crt"
+  178  bindDN: "uid=admin,cn=users,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  179  bindPassword: "r3dh4t1!"
+  180  rfc2307:
+  181      groupsQuery:
+  182          baseDN: "cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  183          scope: sub
+  184          derefAliases: never
+  185          filter: (&(!(objectClass=mepManagedEntry))(!(cn=trust admins))(!(cn=groups))(!(cn=admins))(!(cn=ipausers))(!(cn=editors))(!(cn=ocp-users))(!(cn=evmgroup*))(!(cn=ipac*)))
+  186      groupUIDAttribute: dn
+  187      groupNameAttributes: [ cn ]
+  188      groupMembershipAttributes: [ member ]
+  189      usersQuery:
+  190          baseDN: "cn=users,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com"
+  191          scope: sub
+  192          derefAliases: never
+  193      userUIDAttribute: dn
+  194      userNameAttributes: [ uid ]
+  195  EOF
+  196  cat << EOF >> /etc/origin/master/groupsync.yaml
+  197  groupUIDNameMapping:
+  198    "cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "portalapp"
+  199    "cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "paymentapp"
+  200    "cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-production"
+  201    "cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com": "ocp-platform"
+  202  EOF
+  203  cat << EOF > /etc/origin/master/whitelist.yaml
+  204  cn=portalapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com
+  205  cn=paymentapp,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com
+  206  cn=ocp-platform,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com
+  207  cn=ocp-production,cn=groups,cn=accounts,dc=shared,dc=example,dc=opentlc,dc=com
+  208  EOF
+  209  oc get users
+  210  oc delete user andrew
+  211  oc delete user karla
+  212  oc get users
+  213  oc adm groups sync --sync-config=/etc/origin/master/groupsync.yaml --whitelist=/etc/origin/master/whitelist.yaml
+  214  oc adm groups sync --sync-config=/etc/origin/master/groupsync.yaml --whitelist=/etc/origin/master/whitelist.yaml --confirm
+  215  oc get groups
+  216  export APPNAME=portalapp
+  217  export APPTEXT="Portal App"
+  218  oc adm new-project ${APPNAME}-dev --display-name="${APPTEXT} Development"
+  219  oc adm new-project ${APPNAME}-test --display-name="${APPTEXT} Testing"
+  220  oc adm new-project ${APPNAME}-prod --display-name="${APPTEXT} Production"
+  221  export APPNAME=paymentapp
+  222  export APPTEXT="Payment App"
+  223  oc adm new-project ${APPNAME}-dev --display-name="${APPTEXT} Development"
+  224  oc adm new-project ${APPNAME}-test --display-name="${APPTEXT} Testing"
+  225  oc adm new-project ${APPNAME}-prod --display-name="${APPTEXT} Production"
+  226  oc get projects  | grep App
+  227  oc adm policy add-role-to-group admin portalapp -n portalapp-dev
+  228  oc adm policy add-role-to-group admin portalapp -n portalapp-test
+  229  oc adm policy add-role-to-group admin paymentapp -n paymentapp-dev
+  230  oc adm policy add-role-to-group admin paymentapp -n paymentapp-test
+  231  oc adm policy add-role-to-group admin ocp-production -n portalapp-prod
+  232  oc adm policy add-role-to-group admin ocp-production -n paymentapp-prod
+  233  oc describe rolebinding.rbac -n paymentapp-dev
+  234  oc adm policy add-cluster-role-to-group cluster-admin ocp-platform
+  235  oc login -u marina -p 'r3dh4t1!'
+  236  oc project paymentapp-dev
+  237  oc new-app ruby~https://github.com/openshift/sinatra-example --name=sinatra -n paymentapp-dev
+  238  oc logs -f build/sinatra-1 -n paymentapp-dev
+  239  oc describe imagestream sinatra -n paymentapp-dev
+  240  oc tag sinatra:latest sinatra:test
+  241  oc new-app paymentapp-dev/sinatra:test -n paymentapp-test
+  242  oc get pods -n paymentapp-test
+  243  oc describe rolebinding.rbac -n paymentapp-dev
+  244  oc describe rolebinding.rbac -n paymentapp-test
+  245  oc whoami
+  246  oc get pods -n paymentapp-test
+  247  oc login -u karla -p 'r3dh4t1!'
+  248  oc new-app paymentapp-dev/sinatra:prod -n paymentapp-prod
+  249  oc new-app paymentapp-dev/sinatra:test -n paymentapp-prod
+  250  oc login -u system:admin
+  251  oc policy add-role-to-group system:image-puller system:serviceaccounts:paymentapp-prod -n paymentapp-dev
+  252  oc policy add-role-to-group system:image-puller system:serviceaccounts:paymentapp-test -n paymentapp-dev
+  253  oc policy add-role-to-group registry-viewer ocp-production -n  paymentapp-dev
+  254  oc policy add-role-to-group registry-viewer ocp-production -n  paymentapp-test
+  255  oc login -u marina
+  256  oc rollout latest dc/sinatra -n paymentapp-test
+  257  oc get pods -n paymentapp-test
+  258  oc tag sinatra:test sinatra:prod -n paymentapp-dev
+  259  oc login -u karla -p 'r3dh4t1!'
+  260  oc new-app paymentapp-dev/sinatra:prod -n paymentapp-prod
+  261  oc login -u andrew -p 'r3dh4t1!'
+  262  oc new-project mygitlab
+  263  oc new-app gitlab/gitlab-ce
+  264  oc logs -f dc/gitlab-ce
+  265  oc login -u system:admin
+  266  oc adm policy add-scc-to-group anyuid system:serviceaccounts:mygitlab
+  267  oc login -u andrew
+  268  oc rollout latest dc/gitlab-ce
+  269  oc logs -f dc/gitlab-ce
+  270  oc rsh dc/gitlab-ce
+  271  oc get services
+  272  oc expose service gitlab-ce --port 80
+  273  oc get route
+  274  oc project
+  275  oc delete project mygitlab
+  276  oc login -u system:admin
+  277  oc project default
+  278  oc describe clusterrolebinding.rbac  self-provisioners -n default
+  279  oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated
+  280  oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+  281  oc describe clusterrolebinding.rbac  self-provisioners -n default
+  282  exit
+  283  oc login -u payment1
+  284  oc new-project thiswillnotwork
+  285  oc whoami
+  286  oc projects
+  287  oc login -u system:admin
+  288  oc delete project thiswillnotwork
+  289  oc describe clusterrolebinding.rbac  self-provisioners -n default
+  290  oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated
+  291  oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+  292  oc describe clusterrolebinding.rbac  self-provisioners -n default
+  293  oc login -u payment1
+  294  oc new-project thiswillnotwork
+  295  oc login -u system:admin
+  296  oc project default
+  297  oc adm policy add-cluster-role-to-group self-provisioner ocp-production
+  298  oc describe clusterrolebinding.rbac  self-provisioners -n default
+  299  oc login -u prod1
+  300  oc new-project thiswillwork
+  301  oc adm policy add-cluster-role-to-group self-provisioner system:authenticated
+  302  oc whoami
+  303  oc login -u system:admin
+  304  oc adm policy add-cluster-role-to-group self-provisioner system:authenticated
+  305  oc delete project thiswillwork
+  306  oc adm new-project resourcemanagement --display-name="Resources Management"     --description="This is the project we use to learn about resource management"     --admin=andrew  --node-selector='env=app'
+  307  cat << EOF > quota.json
+  308  {
+  309    "apiVersion": "v1",
+  310    "kind": "ResourceQuota",
+  311    "metadata": {
+  312      "name": "test-quota"
+  313    },
+  314    "spec": {
+  315      "hard": {
+  316        "memory": "512Mi",
+  317        "cpu": "20",
+  318        "pods": "3",
+  319        "services": "5",
+  320        "replicationcontrollers":"5",
+  321        "resourcequotas":"1"
+  322      }
+  323    }
+  324  }
+  325  EOF
+  326  oc create -f quota.json --namespace=resourcemanagement
+  327  oc get -n resourcemenagement quota
+  328  oc project
+  329  oc project resourcemanagement
+  330  oc get all
+  331  oc create -f quota.json --namespace=resourcemanagement
+  332  oc get -n resourcemenagement quota
+  333  oc get quota
+  334  oc get quota -n resourcemanagement
+  335  oc describe quota test-quota -n resourcemanagement
+  336  cat << EOF > limits.json
+  337  {
+  338      "kind": "LimitRange",
+  339      "apiVersion": "v1",
+  340      "metadata": {
+  341          "name": "limits",
+  342          "creationTimestamp": null
+  343      },
+  344      "spec": {
+  345          "limits": [
+  346              {
+  347                  "type": "Pod",
+  348                  "max": {
+  349                      "cpu": "500m",
+  350                      "memory": "750Mi"
+  351                  },
+  352                  "min": {
+  353                      "cpu": "10m",
+  354                      "memory": "5Mi"
+  355                  }
+  356              },
+  357              {
+  358                  "type": "Container",
+  359                  "max": {
+  360                      "cpu": "500m",
+  361                      "memory": "750Mi"
+  362                  },
+  363                  "min": {
+  364                      "cpu": "10m",
+  365                      "memory": "5Mi"
+  366                  },
+  367                  "default": {
+  368                      "cpu": "100m",
+  369                      "memory": "100Mi"
+  370                  }
+  371              }
+  372          ]
+  373      }
+  374  }
+  375  EOF
+  376  ls
+  377  oc create -f limits.json -n resourcemanagement
+  378  oc describe limitranges limits -n resourcemanagement
+  379  oc login -u andrew -p 'r3dh4t1!' -n resourcemanagement
+  380  oc whoami
+  381  cat <<EOF > hello-pod.json
+  382  {
+  383    "kind": "Pod",
+  384    "apiVersion": "v1",
+  385    "metadata": {
+  386      "name": "hello-openshift",
+  387      "creationTimestamp": null,
+  388      "labels": {
+  389        "name": "hello-openshift"
+  390      }
+  391    },
+  392    "spec": {
+  393      "containers": [
+  394        {
+  395          "name": "hello-openshift",
+  396          "image": "openshift/hello-openshift:v1.2.1",
+  397          "ports": [
+  398            {
+  399              "containerPort": 8080,
+  400              "protocol": "TCP"
+  401            }
+  402          ],
+  403          "resources": {
+  404          },
+  405          "terminationMessagePath": "/dev/termination-log",
+  406          "imagePullPolicy": "IfNotPresent",
+  407          "capabilities": {},
+  408          "securityContext": {
+  409            "capabilities": {},
+  410            "privileged": false
+  411          }
+  412        }
+  413      ],
+  414      "restartPolicy": "Always",
+  415      "dnsPolicy": "ClusterFirst",
+  416      "serviceAccount": ""
+  417    },
+  418    "status": {}
+  419  }
+  420  EOF
+  421  oc create -f hello-pod.json 
+  422  oc get pods
+  423  ip=`oc describe pod hello-openshift|grep IP:|awk '{print $2}'`
+  424  curl http://${ip}:8080
+  425  oc delete -f hello-pod.json 
+  426  cat << EOF > hello-many-pods.json
+  427  {
+  428    "metadata":{
+  429      "name":"quota-pod-deployment-test"
+  430    },
+  431    "kind":"List",
+  432    "apiVersion":"v1",
+  433    "items":[
+  434      {
+  435        "kind": "Pod",
+  436        "apiVersion": "v1",
+  437        "metadata": {
+  438          "name": "hello-openshift-1",
+  439          "creationTimestamp": null,
+  440          "labels": {
+  441            "name": "hello-openshift"
+  442          }
+  443        },
+  444        "spec": {
+  445          "containers": [
+  446            {
+  447              "name": "hello-openshift",
+  448              "image": "openshift/hello-openshift:v1.2.1",
+  449              "ports": [
+  450                {
+  451                  "containerPort": 8080,
+  452                  "protocol": "TCP"
+  453                }
+  454              ],
+  455              "resources": {
+  456                "limits": {
+  457                  "cpu": "10m",
+  458                  "memory": "16Mi"
+  459                }
+  460              },
+  461              "terminationMessagePath": "/dev/termination-log",
+  462              "imagePullPolicy": "IfNotPresent",
+  463              "capabilities": {},
+  464              "securityContext": {
+  465                "capabilities": {},
+  466                "privileged": false
+  467              }
+  468            }
+  469          ],
+  470          "restartPolicy": "Always",
+  471          "dnsPolicy": "ClusterFirst",
+  472          "serviceAccount": ""
+  473        },
+  474        "status": {}
+  475      },
+  476      {
+  477        "kind": "Pod",
+  478        "apiVersion": "v1",
+  479        "metadata": {
+  480          "name": "hello-openshift-2",
+  481          "creationTimestamp": null,
+  482          "labels": {
+  483            "name": "hello-openshift"
+  484          }
+  485        },
+  486        "spec": {
+  487          "containers": [
+  488            {
+  489              "name": "hello-openshift",
+  490              "image": "openshift/hello-openshift:v1.2.1",
+  491              "ports": [
+  492                {
+  493                  "containerPort": 8080,
+  494                  "protocol": "TCP"
+  495                }
+  496              ],
+  497              "resources": {
+  498                "limits": {
+  499                  "cpu": "10m",
+  500                  "memory": "16Mi"
+  501                }
+  502              },
+  503              "terminationMessagePath": "/dev/termination-log",
+  504              "imagePullPolicy": "IfNotPresent",
+  505              "capabilities": {},
+  506              "securityContext": {
+  507                "capabilities": {},
+  508                "privileged": false
+  509              }
+  510            }
+  511          ],
+  512          "restartPolicy": "Always",
+  513          "dnsPolicy": "ClusterFirst",
+  514          "serviceAccount": ""
+  515        },
+  516        "status": {}
+  517      },
+  518      {
+  519        "kind": "Pod",
+  520        "apiVersion": "v1",
+  521        "metadata": {
+  522          "name": "hello-openshift-3",
+  523          "creationTimestamp": null,
+  524          "labels": {
+  525            "name": "hello-openshift"
+  526          }
+  527        },
+  528        "spec": {
+  529          "containers": [
+  530            {
+  531              "name": "hello-openshift",
+  532              "image": "openshift/hello-openshift:v1.2.1",
+  533              "ports": [
+  534                {
+  535                  "containerPort": 8080,
+  536                  "protocol": "TCP"
+  537                }
+  538              ],
+  539              "resources": {
+  540                "limits": {
+  541                  "cpu": "10m",
+  542                  "memory": "16Mi"
+  543                }
+  544              },
+  545              "terminationMessagePath": "/dev/termination-log",
+  546              "imagePullPolicy": "IfNotPresent",
+  547              "capabilities": {},
+  548              "securityContext": {
+  549                "capabilities": {},
+  550                "privileged": false
+  551              }
+  552            }
+  553          ],
+  554          "restartPolicy": "Always",
+  555          "dnsPolicy": "ClusterFirst",
+  556          "serviceAccount": ""
+  557        },
+  558        "status": {}
+  559      },
+  560      {
+  561        "kind": "Pod",
+  562        "apiVersion": "v1",
+  563        "metadata": {
+  564          "name": "hello-openshift-4",
+  565          "creationTimestamp": null,
+  566          "labels": {
+  567            "name": "hello-openshift"
+  568          }
+  569        },
+  570        "spec": {
+  571          "containers": [
+  572            {
+  573              "name": "hello-openshift",
+  574              "image": "openshift/hello-openshift:v1.2.1",
+  575              "ports": [
+  576                {
+  577                  "containerPort": 8080,
+  578                  "protocol": "TCP"
+  579                }
+  580              ],
+  581              "resources": {
+  582                "limits": {
+  583                  "cpu": "10m",
+  584                  "memory": "16Mi"
+  585                }
+  586              },
+  587              "terminationMessagePath": "/dev/termination-log",
+  588              "imagePullPolicy": "IfNotPresent",
+  589              "capabilities": {},
+  590              "securityContext": {
+  591                "capabilities": {},
+  592                "privileged": false
+  593              }
+  594            }
+  595          ],
+  596          "restartPolicy": "Always",
+  597          "dnsPolicy": "ClusterFirst",
+  598          "serviceAccount": ""
+  599        },
+  600        "status": {}
+  601      }
+  602    ]
+  603  }
+  604  EOF
+  605  oc create -f hello-many-pods.json 
+  606  oc delete -f hello-many-pods.json 
+  607  oc new-project svcslab --display-name="Services Lab"     --description="This is the project we use to learn about services"
+  608  cat <<EOF > hello-service.json
+  609  {
+  610    "kind": "Service",
+  611    "apiVersion": "v1",
+  612    "metadata": {
+  613      "name": "hello-service",
+  614      "labels": {
+  615        "name": "hello-openshift"
+  616      }
+  617    },
+  618    "spec": {
+  619      "selector": {
+  620        "name":"hello-openshift"
+  621      },
+  622      "ports": [
+  623        {
+  624          "protocol": "TCP",
+  625          "port": 8888,
+  626          "targetPort": 8080
+  627        }
+  628      ]
+  629    }
+  630  }
+  631  EOF
+  632  ls
+  633  oc create -f hello-service.json 
+  634  oc get services
+  635  oc describe service hello-service
+  636  oc create -f hello-many-pods.json 
+  637  oc describe service hello-service
+  638  ip=$(oc get service hello-service --template "{{ .spec.clusterIP }}")
+  639  curl http://${ip}:8888
+  640  cat <<EOF > hello-route.yml
+  641  ---
+  642  apiVersion: v1
+  643  kind: Route
+  644  metadata:
+  645    name: hello-service
+  646  spec:
+  647    host: hello2-openshift.apps.${GUID}.example.opentlc.com
+  648    to:
+  649      kind: Service
+  650      name: hello-service
+  651  EOF
+  652  oc create -f hello-route.yml
+  653  oc get route
+  654  cat <<EOF > hello-route.yml
+  655  ---
+  656  apiVersion: v1
+  657  kind: Route
+  658  metadata:
+  659    name: hello-service
+  660  spec:
+  661    host: hello2-openshift.apps.${GUID}.example.opentlc.com
+  662    to:
+  663      kind: Service
+  664      name: hello-service
+  665  EOF
+  666  oc create -f hello-route.yml
+  667  curl http://hello2-openshift.apps.${GUID}.example.opentlc.com
+  668  oc login -u andrew -p 'r3dh4t1!'
+  669  oc new-project explore-example --display-name="Explore Example"     --description="This is the project we use to learn about connecting to pods"
+  670  oc new-app --docker-image=openshift/hello-openshift:v1.2.1 -l "todelete=yes"
+  671  oc get svc
+  672  oc get pods
+  673  oc expose service hello-openshift --hostname=explore.apps.${GUID}.example.opentlc.com
+  674  oc new-app https://github.com/openshift/sinatra-example -l "todelete=yes"
+  675  oc login -u system:admin -n default
+  676  oc get pods
+  677  oc get pods -l 'router=router' -o=jsonpath='{.items[0].metadata.name}'
+  678  oc rsh $(oc get pods -l 'router=router' -o=jsonpath='{.items[0].metadata.name}')
+  679  oc login -u andrew -p 'r3dh4t1!' -n explore-example
+  680  oc get dc
+  681  oc login -u andrew -p 'r3dh4t1!' -n explore-example
+  682  oc login -u system:admin -n default
+  683  oc rsh $(oc get pods -l 'router=router' -o=jsonpath='{.items[0].metadata.name}')
+  684  sed '/^ *$/d' haproxy.config | grep -A 20 'backend.*explore-example:hello-openshift'
+  685  oc login -u andrew -p 'r3dh4t1!' -n explore-example
+  686  oc logs builds/sinatra-example-1
+  687  oc login -u system:admin -n default
+  688  oc get pods --show-labels
+  689  oc get pods -l 'docker-registry=default' -o name
+  690  oc rsh $(oc get pods -l 'docker-registry=default' -o name)
+  691  exit
+  692  IP=$(oc get svc hello-openshift --template "{{ .spec.clusterIP }}")
+  693  for time in {1..15000}; do   echo time $time;   curl ${IP}:8080; done
+  694  exit
+  695  oc login -u system:admin -n default
+  696  oc delete pvc registry-claim ; oc delete pv registry-volume
+  697  cat << EOF > registry-volume.yaml
+  698  apiVersion: v1
+  699  kind: PersistentVolume
+  700  metadata:
+  701   name: registry-volume
+  702  spec:
+  703   accessModes:
+  704   - ReadWriteMany
+  705   capacity:
+  706     storage: 15Gi
+  707   nfs:
+  708     path: /srv/nfs/pvs/registry-storage
+  709     server: support1.${GUID}.internal
+  710   persistentVolumeReclaimPolicy: Retain
+  711  EOF
+  712  oc create -f registry-volume.yaml
+  713  oc get pv registry-volume
+  714  cat << EOF > registry-volume-claim.yaml
+  715  apiVersion: v1
+  716  kind: PersistentVolumeClaim
+  717  metadata:
+  718   name: registry-claim-new
+  719  spec:
+  720   accessModes:
+  721   - ReadWriteMany
+  722   resources:
+  723     requests:
+  724       storage: 15Gi
+  725  status:
+  726   accessModes:
+  727   - ReadWriteMany
+  728   capacity:
+  729     storage: 15Gi
+  730  EOF
+  731  oc create -f registry-volume-claim.yaml
+  732  oc get pvc registry-claim-new
+  733  oc get pv registry-volume
+  734  oc get dc
+  735  oc volume dc/docker-registry --add --overwrite -t persistentVolumeClaim --claim-name=registry-claim-new --name=registry-storage --mount-path=/registry
+  736  oc get pods
+  737  oc rsh $(oc get pod|grep docker-registry|grep Running|awk '{print $1}')   df -h|grep '/registry'
+  738  oc rsh $(oc get pod|grep docker-registry|grep Running|awk '{print $1}')   touch /registry/OK
+  739  oc rsh $(oc get pod|grep docker-registry|grep Running|awk '{print $1}')   ls /registry/
+  740  oc login -u andrew -p r3dh4t1! -n explore-example
+  741  oc new-app centos/ruby-22-centos7~https://github.com/openshift/ruby-ex.git
+  742  OC LOGS -F BC/RUBY-EX
+  743  oc logs -f bc/ruby-ex
+  744  ssh support1.${GUID}.internal
+  745  oc login -u system:admin -n default
+  746  oc get nodes --show-labels
+  747  oc label node node2.$GUID.internal node3.$GUID.internal perftest=true
+  748  oc get nodes -l 'perftest=true'
+  749  oc adm new-project test-hpa --node-selector='perftest=true'
+  750  oc project test-hpa
+  751  cat << EOF > limits.yaml
+  752  ---
+  753  kind: LimitRange
+  754  apiVersion: v1
+  755  metadata:
+  756    name: limits
+  757  spec:
+  758    limits:
+  759    - type: Pod
+  760      max:
+  761        cpu: 100m
+  762        memory: 750Mi
+  763      min:
+  764        cpu: 10m
+  765        memory: 5Mi
+  766    - type: Container
+  767      max:
+  768        cpu: 100m
+  769        memory: 750Mi
+  770      min:
+  771        cpu: 10m
+  772        memory: 5Mi
+  773      default:
+  774        cpu: 50m
+  775        memory: 100Mi
+  776      defaultRequest:
+  777        cpu: 10m
+  778        memory: 50Mi
+  779  ls
+  780  cat << EOF > limits.yaml
+  781  ---
+  782  kind: LimitRange
+  783  apiVersion: v1
+  784  metadata:
+  785    name: limits
+  786  spec:
+  787    limits:
+  788    - type: Pod
+  789      max:
+  790        cpu: 100m
+  791        memory: 750Mi
+  792      min:
+  793        cpu: 10m
+  794        memory: 5Mi
+  795    - type: Container
+  796      max:
+  797        cpu: 100m
+  798        memory: 750Mi
+  799      min:
+  800        cpu: 10m
+  801        memory: 5Mi
+  802      default:
+  803        cpu: 50m
+  804        memory: 100Mi
+  805      defaultRequest:
+  806        cpu: 10m
+  807        memory: 50Mi
+  808  cat << EOF > limits.yaml
+  809  ---
+  810  kind: LimitRange
+  811  apiVersion: v1
+  812  metadata:
+  813    name: limits
+  814  spec:
+  815    limits:
+  816    - type: Pod
+  817      max:
+  818        cpu: 100m
+  819        memory: 750Mi
+  820      min:
+  821        cpu: 10m
+  822        memory: 5Mi
+  823    - type: Container
+  824      max:
+  825        cpu: 100m
+  826        memory: 750Mi
+  827      min:
+  828        cpu: 10m
+  829        memory: 5Mi
+  830      default:
+  831        cpu: 50m
+  832        memory: 100Mi
+  833      defaultRequest:
+  834        cpu: 10m
+  835        memory: 50Mi
+  836  EOF
+  837  oc create -f limits.yaml -n test-hpa
+  838  oc describe limits
+  839  oc new-app openshift/hello-openshift -n test-hpa
+  840  oc autoscale dc/hellow-openshift --min 1 --max 5 --cpu-percent=50
+  841  oc autoscale dc/hello-openshift --min 1 --max 5 --cpu-percent=50
+  842  oc get hpa/hello-openshift -n test-hpa
+  843  oc describe hpa/hello-openshift -n test-hpa
+  844  oc get hpa/hello-openshift -n test-hpa
+  845  oc describe hpa/hello-openshift -n test-hpa
+  846  ls
+  847  ls pvs
+  848  history
+  849  exit
+  850  ls
+  851  git clone https://github.com/bentaljaard/rh_deploy_lab.git
+  852  ls
+  853  mv *.json rh_deploy_lab/
+  854  mv *.yaml rh_deploy_lab/
+  855  mv *.yml rh_deploy_lab/
+  856  ls
+  857  cd rh_deploy_lab/
+  858  git status
+  859  git add .
+  860  git commit -m "add temp files"
+  861  git push -u origin master
+  862* history 
+  863  history > history.txt
