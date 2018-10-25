@@ -1,0 +1,61 @@
+    1  export GUID=$(hostname | cut -d. -f2)
+    2  echo ${GUID}
+    3  echo ${GUID}; echo "export GUID=${GUID}" >> /root/.bashrc
+    4  ssh master1.$GUID.internal
+    5  cat /etc/ansible/hosts
+    6  ansible masters --list-hostss
+    7  ansible masters --list-hosts
+    8  ansible nodes --list-hosts
+    9  ansible all --list-hosts
+   10  ansible all -m ping
+   11  cat /root/.ssh/config
+   12  ssh master1.${GUID}.internal -v
+   13  host loadbalancer.${GUID}.example.opentlc.com
+   14  host loadbalancer1.${GUID}.internal
+   15  host anyname.apps.${GUID}.example.opentlc.com
+   16  dig master{1,2,3}.${GUID}.internal | egrep -v "\;|^$"
+   17  dig {infra,}node{1,2}.${GUID}.internal  | egrep -v "\;|^$"
+   18  host support1.${GUID}.internal
+   19  ansible masters,nodes -m shell -a"yum repolist"
+   20  ansible nfs -m shell -a"exportfs"
+   21  sed -i 's/#log_/log_/' /etc/ansible/ansible.cfg
+   22  ssh node1.${GUID}.internal
+   23  ansible -f 10 nodes -m yum -a"name=docker"
+   24  ansible -f 10 nodes -m copy -a 'dest=/etc/sysconfig/docker-storage-setup content="DEVS=/dev/xvdb\nVG=docker-vg"'
+   25  ansible -f 10 nodes -m shell -a"docker-storage-setup"
+   26  ansible -f 10 nodes -m service -a"name=docker state=started enabled=yes"
+   27  ansible -f 10 nodes -m shell -a "systemctl status docker | grep Active"
+   28  ansible nodes -m yum -a 'list=atomic-openshift-node'
+   29  yum -y install atomic-openshift-utils atomic-openshift-clients
+   30  cd /root
+   31  git init
+   32  touch my_ocp_inventory
+   33  git add my_ocp_inventory
+   34  git commit -m 'initial commit'
+   35  cat /root/my_ocp_inventory 
+   36  vi /root/my_ocp_inventory
+   37  sed -i "s/\$GUID/${GUID}/g" /root/my_ocp_inventory
+   38  ls
+   39  git status
+   40  git add my_ocp_inventory
+   41  git status
+   42  git commit -m "inventory file"
+   43  ansible-playbook -f 20 -i /root/my_ocp_inventory /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
+   44  ssh master1.${GUID}.internal
+   45  ssh support1.$GUID.internal
+   46  ssh master1.$GUID.internal
+   47  ansible-playbook -i /root/my_ocp_inventory     /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-checks/health.yml
+   48  ls /etc/ansible/hosts
+   49  cat /etc/ansible/hosts
+   50  echo ${GUID}
+   51  ssh master1.${GUID}.internal
+   52  exit
+   53  IP=$(oc get svc hello-openshift --template "{{ .spec.clusterIP }}")
+   54  for time in {1..15000}; do   echo time $time;   curl ${IP}:8080; done
+   55  ssh master1
+   56  ssh root@master1
+   57  ssh master1.$GUID.internal
+   58  screen -r
+   59  ssh master1.$GUID.internal
+   60  history
+   61  history > bastion_history.txt
