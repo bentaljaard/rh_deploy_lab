@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: hello-service
+spec:
+  host: hello2-openshift.apps.d3fd.example.opentlc.com
+  to:
+    kind: Service
+    name: hello-service

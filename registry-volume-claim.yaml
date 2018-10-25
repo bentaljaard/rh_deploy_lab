@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: registry-claim-new
+spec:
+ accessModes:
+ - ReadWriteMany
+ resources:
+   requests:
+     storage: 15Gi
+status:
+ accessModes:
+ - ReadWriteMany
+ capacity:
+   storage: 15Gi
