@@ -1,0 +1,23 @@
+    1  mkdir -p /srv/nfs/user-vols/pv{1..200}
+    2  ls /srv/nfs/user-vols
+    3  for pvnum in {1..50} ; do echo /srv/nfs/user-vols/pv${pvnum} *(rw,root_squash) >> /etc/exports.d/openshift-uservols.exports; chown -R nfsnobody.nfsnobody  /srv/nfs; chmod -R 777 /srv/nfs; done
+    4  systemctl restart nfs-server
+    5  exit
+    6  export GUID=$(hostname | cut -d. -f2)
+    7  echo "export GUID=${GUID}" >> /root/.bashrc
+    8  cat /etc/exports.d/openshift-ansible.exports
+    9  lsblk
+   10  export volname=registry-storage
+   11  mkdir -p /srv/nfs/pvs/${volname}
+   12  chown nfsnobody:nfsnobody /srv/nfs/pvs/${volname}
+   13  chmod 770 /srv/nfs/pvs/${volname}
+   14  echo "/srv/nfs/pvs/${volname} *(rw,root_squash)" >> /etc/exports
+   15  sed -i /registry/d /etc/exports.d/openshift-ansible.exports
+   16  exportfs -r
+   17  exit
+   18  ls /srv/nfs/pvs/registry-storage/docker/registry/v2/repositories
+   19  find /srv/nfs/pvs/registry-storage | grep ruby-ex
+   20  exit
+   21  history
+   22  git clone https://github.com/bentaljaard/rh_deploy_lab.git
+   23  history > support_history.txt
